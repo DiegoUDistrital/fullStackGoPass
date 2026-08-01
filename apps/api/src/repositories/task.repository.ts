@@ -1,5 +1,5 @@
 import { Op } from "sequelize"
-import { TaskModel, UserModel } from "../models"
+import { ProjectModel, TaskModel, UserModel } from "../models"
 
 export class TaskRepository {
   public create(data: {
@@ -31,6 +31,15 @@ export class TaskRepository {
       },
       include: [{ model: UserModel, as: "assignedUser", attributes: ["id", "name"] }],
       order: [["createdAt", "ASC"]]
+    })
+  }
+
+  public listAll() {
+    return TaskModel.findAll({
+      include: [
+        { model: UserModel, as: "assignedUser", attributes: ["id", "name"] },
+        { model: ProjectModel, as: "project", attributes: ["id", "name"] }
+      ]
     })
   }
 

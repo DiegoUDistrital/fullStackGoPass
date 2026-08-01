@@ -22,6 +22,7 @@ export class TaskModel extends Model<InferAttributes<TaskModel>, InferCreationAt
   declare archivedAt: Date | null
   declare deletedAt: Date | null
   declare assignedUser?: NonAttribute<{ id: string; name: string } | null>
+  declare project?: NonAttribute<{ id: string; name: string }>
 }
 
 export function initTaskModel(sequelize: Sequelize): typeof TaskModel {

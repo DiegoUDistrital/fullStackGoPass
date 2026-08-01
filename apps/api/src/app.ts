@@ -2,6 +2,7 @@ import express from "express"
 import { errorMiddleware } from "./middlewares/error.middleware"
 import { notFoundMiddleware } from "./middlewares/not-found.middleware"
 import { authRouter } from "./routes/auth.route"
+import { dashboardRouter } from "./routes/dashboard.route"
 import { healthRouter } from "./routes/health.route"
 import { projectRouter } from "./routes/project.route"
 import { taskRouter } from "./routes/task.route"
@@ -16,6 +17,7 @@ export function createApp() {
   app.use("/api", userRouter)
   app.use("/api", projectRouter)
   app.use("/api", taskRouter)
+  app.use("/api", dashboardRouter)
   app.use(notFoundMiddleware)
   app.use(errorMiddleware)
 
