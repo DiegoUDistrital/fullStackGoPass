@@ -56,9 +56,14 @@ export class TaskController {
   }
 
   public assign = async (request: Request<{ id: string }>, response: Response): Promise<void> => {
-    const { assignedUserId } = request.body as { assignedUserId: string }
+    const { assignedUserId, comment } = request.body as { assignedUserId: string; comment?: string }
 
-    const task = await this.taskService.assignTask(request.params.id, assignedUserId)
+    const task = await this.taskService.assignTask(
+      request.params.id,
+      assignedUserId,
+      request.authenticatedUser!.id,
+      comment
+    )
     logger.info(
       { taskId: task.id, assignedUserId, assignedBy: request.authenticatedUser?.id },
       "Task assigned"
@@ -68,7 +73,9 @@ export class TaskController {
   }
 
   public unassign = async (request: Request<{ id: string }>, response: Response): Promise<void> => {
-    const task = await this.taskService.unassignTask(request.params.id)
+    const { comment } = (request.body ?? {}) as { comment?: string }
+
+    const task = await this.taskService.unassignTask(request.params.id, request.authenticatedUser!.id, comment)
     logger.info({ taskId: task.id, unassignedBy: request.authenticatedUser?.id }, "Task unassigned")
 
     response.status(200).json({ data: task })

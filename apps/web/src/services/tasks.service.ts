@@ -61,13 +61,18 @@ export async function updateTask(token: string, id: string, input: UpdateTaskInp
   return response.data
 }
 
-export async function assignTask(token: string, id: string, assignedUserId: string): Promise<Task> {
-  const response = await httpPatch<TaskResponse>(`/api/tasks/${id}/assign`, { assignedUserId }, { token })
+export async function assignTask(
+  token: string,
+  id: string,
+  assignedUserId: string,
+  comment?: string
+): Promise<Task> {
+  const response = await httpPatch<TaskResponse>(`/api/tasks/${id}/assign`, { assignedUserId, comment }, { token })
   return response.data
 }
 
-export async function unassignTask(token: string, id: string): Promise<Task> {
-  const response = await httpPatch<TaskResponse>(`/api/tasks/${id}/unassign`, {}, { token })
+export async function unassignTask(token: string, id: string, comment?: string): Promise<Task> {
+  const response = await httpPatch<TaskResponse>(`/api/tasks/${id}/unassign`, { comment }, { token })
   return response.data
 }
 

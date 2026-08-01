@@ -78,7 +78,8 @@ export function useAssignTaskMutation(projectId: string, taskId: string) {
   const invalidate = useInvalidateTask(projectId, taskId)
 
   return useMutation({
-    mutationFn: (assignedUserId: string) => assignTask(session.token!, taskId, assignedUserId),
+    mutationFn: ({ assignedUserId, comment }: { assignedUserId: string; comment?: string }) =>
+      assignTask(session.token!, taskId, assignedUserId, comment),
     onSuccess: invalidate
   })
 }
@@ -88,7 +89,7 @@ export function useUnassignTaskMutation(projectId: string, taskId: string) {
   const invalidate = useInvalidateTask(projectId, taskId)
 
   return useMutation({
-    mutationFn: () => unassignTask(session.token!, taskId),
+    mutationFn: (comment?: string) => unassignTask(session.token!, taskId, comment),
     onSuccess: invalidate
   })
 }

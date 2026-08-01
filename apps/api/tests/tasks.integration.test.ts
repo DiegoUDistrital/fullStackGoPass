@@ -506,11 +506,13 @@ test("PATCH /api/tasks/:id/state allows a standard user to change the state of t
   assert.equal(body.data.state, "in_process")
 })
 
-test("PATCH /api/tasks/:id/state forbids a standard user from changing the state of another user's task", async () => {
+test("PATCH /api/tasks/:id/state forbids a standard user with project visibility from changing another user's task", async () => {
   const projectId = await createProject()
   const owner = await createStandardUser()
   const other = await createStandardUser()
   const taskId = await createTask(projectId, { assignedUserId: owner.id, state: "to_do" })
+  // Grants "other" visibility into the same project via their own assigned task.
+  await createTask(projectId, { assignedUserId: other.id, state: "to_do" })
   const otherLogin = await login(other.accessIdentifier, other.password)
 
   const response = await fetch(`${baseUrl}/api/tasks/${taskId}/state`, {
@@ -520,6 +522,125 @@ test("PATCH /api/tasks/:id/state forbids a standard user from changing the state
   })
 
   assert.equal(response.status, 403)
+})
+
+test("PATCH /api/tasks/:id/state returns 404 (not 403) for a standard user with no visibility into the task's project", async () => {
+  const projectId = await createProject()
+  const owner = await createStandardUser()
+  const stranger = await createStandardUser()
+  const taskId = await createTask(projectId, { assignedUserId: owner.id, state: "to_do" })
+  const strangerLogin = await login(stranger.accessIdentifier, stranger.password)
+
+  const response = await fetch(`${baseUrl}/api/tasks/${taskId}/state`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${strangerLogin.body.data.token}` },
+    body: JSON.stringify({ state: "in_process" })
+  })
+
+  assert.equal(response.status, 404)
+})
+
+test("PATCH /api/tasks/:id/state rejects changing state directly from 'open' without assigning first", async () => {
+  const projectId = await createProject()
+  const taskId = await createTask(projectId, { state: "open" })
+
+  const response = await fetch(`${baseUrl}/api/tasks/${taskId}/state`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ state: "in_process" })
+  })
+
+  assert.equal(response.status, 409)
+})
+
+test("PATCH /api/tasks/:id/assign requires a comment to reassign a finished task and records it", async () => {
+  const projectId = await createProject()
+  const assignee = await createStandardUser()
+  const taskId = await createTask(projectId, { assignedUserId: assignee.id, state: "qa" })
+
+  await fetch(`${baseUrl}/api/tasks/${taskId}/state`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ state: "finished" })
+  })
+
+  const withoutComment = await fetch(`${baseUrl}/api/tasks/${taskId}/assign`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ assignedUserId: assignee.id })
+  })
+  assert.equal(withoutComment.status, 400)
+
+  const withComment = await fetch(`${baseUrl}/api/tasks/${taskId}/assign`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ assignedUserId: assignee.id, comment: "Se reabre para ajustes menores" })
+  })
+  assert.equal(withComment.status, 200)
+  const withCommentBody = await withComment.json()
+  assert.equal(withCommentBody.data.state, "to_do")
+
+  const comments = await fetch(`${baseUrl}/api/tasks/${taskId}/comments`, {
+    headers: { authorization: `Bearer ${adminToken}` }
+  })
+  const commentsBody = await comments.json()
+  assert.ok(
+    commentsBody.data.some((comment: { content: string }) => comment.content === "Se reabre para ajustes menores")
+  )
+})
+
+test("PATCH /api/tasks/:id/unassign requires a comment to reopen a finished task and records it", async () => {
+  const projectId = await createProject()
+  const assignee = await createStandardUser()
+  const taskId = await createTask(projectId, { assignedUserId: assignee.id, state: "testing" })
+
+  await fetch(`${baseUrl}/api/tasks/${taskId}/state`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ state: "finished" })
+  })
+
+  const withoutComment = await fetch(`${baseUrl}/api/tasks/${taskId}/unassign`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({})
+  })
+  assert.equal(withoutComment.status, 400)
+
+  const withComment = await fetch(`${baseUrl}/api/tasks/${taskId}/unassign`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ comment: "Se descarta el resultado y se reabre" })
+  })
+  assert.equal(withComment.status, 200)
+  const withCommentBody = await withComment.json()
+  assert.equal(withCommentBody.data.state, "open")
+  assert.equal(withCommentBody.data.assignedUserId, null)
+
+  const comments = await fetch(`${baseUrl}/api/tasks/${taskId}/comments`, {
+    headers: { authorization: `Bearer ${adminToken}` }
+  })
+  const commentsBody = await comments.json()
+  assert.ok(
+    commentsBody.data.some(
+      (comment: { content: string }) => comment.content === "Se descarta el resultado y se reabre"
+    )
+  )
+})
+
+test("PATCH /api/tasks/:id/unassign without a body does not error when the task is not finished", async () => {
+  const projectId = await createProject()
+  const assignee = await createStandardUser()
+  const taskId = await createTask(projectId, { assignedUserId: assignee.id, state: "to_do" })
+
+  const response = await fetch(`${baseUrl}/api/tasks/${taskId}/unassign`, {
+    method: "PATCH",
+    headers: { authorization: `Bearer ${adminToken}` }
+  })
+
+  assert.equal(response.status, 200)
+  const body = await response.json()
+  assert.equal(body.data.state, "open")
 })
 
 test("DELETE /api/tasks/:id requires a comment, soft-deletes the task and is forbidden for standard users", async () => {

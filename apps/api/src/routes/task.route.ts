@@ -6,6 +6,7 @@ import {
   validateAssignTaskPayload,
   validateChangeTaskStatePayload,
   validateCreateTaskPayload,
+  validateOptionalCommentPayload,
   validateTaskLifecycleCommentPayload,
   validateUpdateTaskPayload
 } from "../middlewares/task.middleware"
@@ -48,7 +49,13 @@ taskRouter.patch(
   validateAssignTaskPayload,
   taskController.assign
 )
-taskRouter.patch("/tasks/:id/unassign", authMiddleware, requireAdmin, taskController.unassign)
+taskRouter.patch(
+  "/tasks/:id/unassign",
+  authMiddleware,
+  requireAdmin,
+  validateOptionalCommentPayload,
+  taskController.unassign
+)
 taskRouter.patch(
   "/tasks/:id/state",
   authMiddleware,

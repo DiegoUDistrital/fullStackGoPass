@@ -39,7 +39,8 @@ test("all SQL migrations have been applied to PostgreSQL", async () => {
     "001_create_users.sql",
     "002_create_projects.sql",
     "003_create_tasks.sql",
-    "004_create_comments.sql"
+    "004_create_comments.sql",
+    "005_add_performance_indexes.sql"
   ])
 })
 

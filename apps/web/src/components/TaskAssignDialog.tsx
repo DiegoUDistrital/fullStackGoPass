@@ -16,15 +16,17 @@ import { useUsersQuery } from "../hooks/useUsers"
 
 interface AssignFormValues {
   assignedUserId: string
+  comment: string
 }
 
 interface TaskAssignDialogProps {
   open: boolean
+  isReopening: boolean
   onClose: () => void
-  onAssign: (assignedUserId: string) => Promise<unknown>
+  onAssign: (assignedUserId: string, comment?: string) => Promise<unknown>
 }
 
-export function TaskAssignDialog({ open, onClose, onAssign }: TaskAssignDialogProps) {
+export function TaskAssignDialog({ open, isReopening, onClose, onAssign }: TaskAssignDialogProps) {
   const { data: users } = useUsersQuery()
   const activeUsers = (users ?? []).filter((user) => user.state === "active")
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -39,7 +41,7 @@ export function TaskAssignDialog({ open, onClose, onAssign }: TaskAssignDialogPr
   useEffect(() => {
     if (open) {
       setSubmitError(null)
-      reset({ assignedUserId: "" })
+      reset({ assignedUserId: "", comment: "" })
     }
   }, [open, reset])
 
@@ -47,7 +49,7 @@ export function TaskAssignDialog({ open, onClose, onAssign }: TaskAssignDialogPr
     setSubmitError(null)
 
     try {
-      await onAssign(values.assignedUserId)
+      await onAssign(values.assignedUserId, isReopening ? values.comment : undefined)
       onClose()
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Error al asignar la tarea")
@@ -74,6 +76,17 @@ export function TaskAssignDialog({ open, onClose, onAssign }: TaskAssignDialogPr
                 </MenuItem>
               ))}
             </TextField>
+            {isReopening && (
+              <TextField
+                label="Comentario (obligatorio al reabrir una tarea finalizada)"
+                multiline
+                minRows={2}
+                defaultValue=""
+                error={Boolean(errors.comment)}
+                helperText={errors.comment ? "El comentario es obligatorio" : undefined}
+                {...register("comment", { required: isReopening })}
+              />
+            )}
             {submitError && <Alert severity="error">{submitError}</Alert>}
           </Stack>
         </DialogContent>

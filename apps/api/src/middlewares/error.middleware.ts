@@ -2,6 +2,14 @@ import { NextFunction, Request, Response } from "express"
 import { logger } from "../config/logger"
 import { HttpError } from "../types/http-error"
 
+function isJsonBodyParseError(error: unknown): boolean {
+  return (
+    error instanceof SyntaxError &&
+    "type" in error &&
+    (error as SyntaxError & { type?: string }).type === "entity.parse.failed"
+  )
+}
+
 export function errorMiddleware(
   error: unknown,
   _request: Request,
@@ -17,10 +25,19 @@ export function errorMiddleware(
     return
   }
 
+  if (isJsonBodyParseError(error)) {
+    response.status(400).json({
+      error: {
+        message: "El cuerpo de la solicitud no es un JSON válido"
+      }
+    })
+    return
+  }
+
   logger.error({ err: error }, "Unhandled error")
   response.status(500).json({
     error: {
-      message: "Internal server error"
+      message: "Error interno del servidor"
     }
   })
 }
