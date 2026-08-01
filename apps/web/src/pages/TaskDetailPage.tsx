@@ -58,6 +58,7 @@ export function TaskDetailPage() {
   const [assignOpen, setAssignOpen] = useState(false)
   const [stateOpen, setStateOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [unassignOpen, setUnassignOpen] = useState(false)
 
   const canChangeState = Boolean(
     task && task.state !== "open" && (isAdmin || task.assignedUserId === session.user?.id)
@@ -92,7 +93,12 @@ export function TaskDetailPage() {
                         <Button size="small" onClick={() => setAssignOpen(true)}>
                           Reasignar
                         </Button>
-                        <Button size="small" onClick={() => unassignMutation.mutate()}>
+                        <Button
+                          size="small"
+                          onClick={() =>
+                            task.state === "finished" ? setUnassignOpen(true) : unassignMutation.mutate(undefined)
+                          }
+                        >
                           Desasignar
                         </Button>
                       </>
@@ -121,6 +127,14 @@ export function TaskDetailPage() {
                 <Button variant="outlined" sx={{ alignSelf: "flex-start" }} onClick={() => setStateOpen(true)}>
                   Cambiar estado
                 </Button>
+              )}
+
+              {unassignMutation.isError && (
+                <Alert severity="error">
+                  {unassignMutation.error instanceof Error
+                    ? unassignMutation.error.message
+                    : "Error al desasignar la tarea"}
+                </Alert>
               )}
             </Stack>
           )}
@@ -160,8 +174,9 @@ export function TaskDetailPage() {
 
           <TaskAssignDialog
             open={assignOpen}
+            isReopening={task.state === "finished"}
             onClose={() => setAssignOpen(false)}
-            onAssign={(assignedUserId) => assignMutation.mutateAsync(assignedUserId)}
+            onAssign={(assignedUserId, comment) => assignMutation.mutateAsync({ assignedUserId, comment })}
           />
 
           <TaskStateDialog
@@ -178,6 +193,15 @@ export function TaskDetailPage() {
             confirmLabel="Eliminar"
             onClose={() => setDeleteOpen(false)}
             onConfirm={(comment) => deleteMutation.mutateAsync(comment)}
+          />
+
+          <ProjectLifecycleDialog
+            open={unassignOpen}
+            title="Desasignar tarea"
+            description="Esta acción reabre una tarea finalizada. Ingrese un comentario obligatorio."
+            confirmLabel="Desasignar"
+            onClose={() => setUnassignOpen(false)}
+            onConfirm={(comment) => unassignMutation.mutateAsync(comment)}
           />
         </>
       )}

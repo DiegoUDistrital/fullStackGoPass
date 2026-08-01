@@ -54,6 +54,14 @@ export function UsersPage() {
             <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar usuarios"}</Alert>
           )}
 
+          {setStateMutation.isError && (
+            <Alert severity="error">
+              {setStateMutation.error instanceof Error
+                ? setStateMutation.error.message
+                : "Error al cambiar el estado del usuario"}
+            </Alert>
+          )}
+
           {users && <UserTable users={users} onEdit={openEditDialog} onToggleState={handleToggleState} />}
         </Stack>
       </Container>

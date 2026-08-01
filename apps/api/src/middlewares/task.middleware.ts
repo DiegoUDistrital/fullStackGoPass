@@ -74,10 +74,26 @@ export function validateUpdateTaskPayload(request: Request, _response: Response,
 }
 
 export function validateAssignTaskPayload(request: Request, _response: Response, next: NextFunction): void {
-  const { assignedUserId } = request.body ?? {}
+  const { assignedUserId, comment } = request.body ?? {}
 
   if (typeof assignedUserId !== "string" || !assignedUserId) {
     next(new HttpError("assignedUserId es requerido", 400))
+    return
+  }
+
+  if (comment !== undefined && typeof comment !== "string") {
+    next(new HttpError("comment debe ser un texto", 400))
+    return
+  }
+
+  next()
+}
+
+export function validateOptionalCommentPayload(request: Request, _response: Response, next: NextFunction): void {
+  const { comment } = request.body ?? {}
+
+  if (comment !== undefined && typeof comment !== "string") {
+    next(new HttpError("comment debe ser un texto", 400))
     return
   }
 

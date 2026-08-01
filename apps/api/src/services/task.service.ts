@@ -155,7 +155,25 @@ export class TaskService {
     return toTaskResponse(updated!)
   }
 
-  public async assignTask(id: string, assignedUserId: string): Promise<TaskResponse> {
+  private async recordReopenComment(taskId: string, comment: string | undefined, actorId: string): Promise<void> {
+    if (!comment || !comment.trim()) {
+      throw new HttpError("Reabrir una tarea requiere un comentario", 400)
+    }
+
+    await this.commentRepository.createForTask({
+      id: crypto.randomUUID(),
+      taskId,
+      authorUserId: actorId,
+      content: comment
+    })
+  }
+
+  public async assignTask(
+    id: string,
+    assignedUserId: string,
+    actorId: string,
+    comment?: string
+  ): Promise<TaskResponse> {
     const existing = await this.taskRepository.findById(id)
 
     if (!existing) {
@@ -172,11 +190,15 @@ export class TaskService {
       throw new HttpError("No se puede asignar una tarea a un usuario inactivo", 409)
     }
 
+    if (existing.state === "finished") {
+      await this.recordReopenComment(id, comment, actorId)
+    }
+
     const updated = await this.taskRepository.updateById(id, { assignedUserId, state: "to_do" })
     return toTaskResponse(updated!)
   }
 
-  public async unassignTask(id: string): Promise<TaskResponse> {
+  public async unassignTask(id: string, actorId: string, comment?: string): Promise<TaskResponse> {
     const existing = await this.taskRepository.findById(id)
 
     if (!existing) {
@@ -185,6 +207,10 @@ export class TaskService {
 
     if (existing.assignedUserId === null) {
       throw new HttpError("La tarea no está asignada", 409)
+    }
+
+    if (existing.state === "finished") {
+      await this.recordReopenComment(id, comment, actorId)
     }
 
     const updated = await this.taskRepository.updateById(id, { assignedUserId: null, state: "open" })
@@ -203,8 +229,14 @@ export class TaskService {
       throw new HttpError("Tarea no encontrada", 404)
     }
 
+    await this.assertTaskVisible(existing, actor)
+
     if (actor.role !== "admin" && existing.assignedUserId !== actor.id) {
       throw new HttpError("No autorizado", 403)
+    }
+
+    if (existing.state === "open") {
+      throw new HttpError("Debe asignar la tarea antes de cambiar su estado", 409)
     }
 
     if (newState === existing.state) {
@@ -218,16 +250,7 @@ export class TaskService {
     const isReopening = existing.state === "finished" && newState !== "finished"
 
     if (isReopening) {
-      if (!comment || !comment.trim()) {
-        throw new HttpError("Reabrir una tarea requiere un comentario", 400)
-      }
-
-      await this.commentRepository.createForTask({
-        id: crypto.randomUUID(),
-        taskId: id,
-        authorUserId: actor.id,
-        content: comment
-      })
+      await this.recordReopenComment(id, comment, actor.id)
     }
 
     const updated = await this.taskRepository.updateById(id, { state: newState })
