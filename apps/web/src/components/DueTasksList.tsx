@@ -32,7 +32,7 @@ export function DueTasksList({ tasks, emptyLabel, severity }: DueTasksListProps)
           <Chip
             size="small"
             color={severity}
-            label={new Date(task.dueDate).toLocaleDateString()}
+            label={new Date(task.dueDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
             variant="outlined"
           />
         </Stack>

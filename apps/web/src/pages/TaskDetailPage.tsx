@@ -120,7 +120,9 @@ export function TaskDetailPage() {
               </Stack>
 
               <Typography color="text.secondary">{task.description}</Typography>
-              <Typography variant="body2">Fecha límite: {new Date(task.dueDate).toLocaleDateString()}</Typography>
+              <Typography variant="body2">
+                Fecha límite: {new Date(task.dueDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
+              </Typography>
               <Typography variant="body2">Asignado a: {task.assignedUserName ?? "Sin asignar"}</Typography>
 
               {canChangeState && (

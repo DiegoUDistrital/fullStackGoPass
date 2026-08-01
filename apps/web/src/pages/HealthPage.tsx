@@ -10,7 +10,7 @@ export function HealthPage() {
         <Stack spacing={3}>
           <Typography variant="h4">Sistema de Gestión de Proyectos y Tareas</Typography>
           <Typography color="text.secondary">
-            Fase 4 completada: gestión de usuarios (crear, editar, activar, desactivar, cambio de contraseña).
+            Autenticación, usuarios, proyectos, tareas, comentarios y dashboard integrados.
           </Typography>
           <HealthStatusCard />
         </Stack>

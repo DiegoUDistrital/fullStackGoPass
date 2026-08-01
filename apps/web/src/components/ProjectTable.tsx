@@ -37,7 +37,7 @@ export function ProjectTable({ projects, isAdmin, onEdit, onArchive, onDelete }:
               <TableCell>
                 <Chip label={STATE_LABELS[project.state]} size="small" />
               </TableCell>
-              <TableCell>{new Date(project.eta).toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(project.eta).toLocaleDateString(undefined, { timeZone: "UTC" })}</TableCell>
               <TableCell align="right">
                 <Button size="small" component={RouterLink} to={`/projects/${project.id}`}>
                   Ver
