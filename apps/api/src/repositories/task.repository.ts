@@ -30,6 +30,16 @@ export class TaskRepository {
     })
   }
 
+  public async listProjectIdsByAssignedUser(assignedUserId: string): Promise<string[]> {
+    const tasks = await TaskModel.findAll({
+      where: { assignedUserId },
+      attributes: ["projectId"],
+      group: ["projectId"]
+    })
+
+    return tasks.map((task) => task.projectId)
+  }
+
   public async updateById(
     id: string,
     data: Partial<{

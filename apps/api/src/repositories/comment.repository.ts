@@ -1,4 +1,4 @@
-import { CommentModel } from "../models"
+import { CommentModel, UserModel } from "../models"
 
 export class CommentRepository {
   public createForProject(data: {
@@ -35,7 +35,9 @@ export class CommentRepository {
     return CommentModel.findAll({
       where: {
         projectId
-      }
+      },
+      include: [{ model: UserModel, as: "author", attributes: ["id", "name"] }],
+      order: [["createdAt", "ASC"]]
     })
   }
 

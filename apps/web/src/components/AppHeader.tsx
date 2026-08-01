@@ -20,6 +20,9 @@ export function AppHeader() {
           <Button component={RouterLink} to="/">
             Inicio
           </Button>
+          <Button component={RouterLink} to="/projects">
+            Proyectos
+          </Button>
           {session.user?.role === "admin" && (
             <Button component={RouterLink} to="/users">
               Usuarios

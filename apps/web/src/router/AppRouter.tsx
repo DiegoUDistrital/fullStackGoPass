@@ -2,6 +2,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { ChangePasswordPage } from "../pages/ChangePasswordPage"
 import { HealthPage } from "../pages/HealthPage"
 import { LoginPage } from "../pages/LoginPage"
+import { ProjectDetailPage } from "../pages/ProjectDetailPage"
+import { ProjectsPage } from "../pages/ProjectsPage"
 import { UsersPage } from "../pages/UsersPage"
 import { AdminRoute } from "./AdminRoute"
 import { ProtectedRoute } from "./ProtectedRoute"
@@ -21,6 +23,14 @@ const router = createBrowserRouter([
       {
         path: "/account/password",
         element: <ChangePasswordPage />
+      },
+      {
+        path: "/projects",
+        element: <ProjectsPage />
+      },
+      {
+        path: "/projects/:id",
+        element: <ProjectDetailPage />
       },
       {
         element: <AdminRoute />,
