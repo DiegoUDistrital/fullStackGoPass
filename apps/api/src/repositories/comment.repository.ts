@@ -45,7 +45,9 @@ export class CommentRepository {
     return CommentModel.findAll({
       where: {
         taskId
-      }
+      },
+      include: [{ model: UserModel, as: "author", attributes: ["id", "name"] }],
+      order: [["createdAt", "ASC"]]
     })
   }
 }

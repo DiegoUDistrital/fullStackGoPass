@@ -1,5 +1,5 @@
 import { Op } from "sequelize"
-import { TaskModel } from "../models"
+import { TaskModel, UserModel } from "../models"
 
 export class TaskRepository {
   public create(data: {
@@ -16,7 +16,9 @@ export class TaskRepository {
   }
 
   public findById(id: string) {
-    return TaskModel.findByPk(id)
+    return TaskModel.findByPk(id, {
+      include: [{ model: UserModel, as: "assignedUser", attributes: ["id", "name"] }]
+    })
   }
 
   public listByProject(projectId: string) {
@@ -26,7 +28,9 @@ export class TaskRepository {
         deletedAt: {
           [Op.is]: null
         }
-      }
+      },
+      include: [{ model: UserModel, as: "assignedUser", attributes: ["id", "name"] }],
+      order: [["createdAt", "ASC"]]
     })
   }
 

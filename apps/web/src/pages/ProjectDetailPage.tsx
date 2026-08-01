@@ -1,10 +1,15 @@
-import { Alert, Box, Chip, CircularProgress, Container, Divider, Stack, Typography } from "@mui/material"
+import { useState } from "react"
+import { Alert, Box, Button, Chip, CircularProgress, Container, Divider, Stack, Typography } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { AppHeader } from "../components/AppHeader"
 import { CommentForm } from "../components/CommentForm"
 import { CommentList } from "../components/CommentList"
+import { TaskBoard } from "../components/TaskBoard"
+import { TaskFormDialog } from "../components/TaskFormDialog"
 import { useCreateProjectCommentMutation, useProjectCommentsQuery } from "../hooks/useComments"
 import { useProjectQuery } from "../hooks/useProjects"
+import { useSession } from "../hooks/useSession"
+import { useCreateTaskMutation, useTasksByProjectQuery } from "../hooks/useTasks"
 
 const STATE_LABELS: Record<string, string> = {
   planned: "Planeado",
@@ -18,9 +23,16 @@ export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
   const projectId = id ?? ""
 
+  const { session } = useSession()
+  const isAdmin = session.user?.role === "admin"
+
   const { data: project, isLoading, isError, error } = useProjectQuery(projectId)
   const commentsQuery = useProjectCommentsQuery(projectId)
   const createCommentMutation = useCreateProjectCommentMutation(projectId)
+
+  const tasksQuery = useTasksByProjectQuery(projectId)
+  const createTaskMutation = useCreateTaskMutation(projectId)
+  const [createTaskOpen, setCreateTaskOpen] = useState(false)
 
   return (
     <>
@@ -49,6 +61,33 @@ export function ProjectDetailPage() {
           <Divider />
 
           <Stack spacing={2}>
+            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="h5">Tareas</Typography>
+              {isAdmin && (
+                <Button variant="contained" size="small" onClick={() => setCreateTaskOpen(true)}>
+                  Crear tarea
+                </Button>
+              )}
+            </Stack>
+
+            {tasksQuery.isLoading && (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            )}
+
+            {tasksQuery.isError && (
+              <Alert severity="error">
+                {tasksQuery.error instanceof Error ? tasksQuery.error.message : "Error al cargar tareas"}
+              </Alert>
+            )}
+
+            {tasksQuery.data && <TaskBoard projectId={projectId} tasks={tasksQuery.data} />}
+          </Stack>
+
+          <Divider />
+
+          <Stack spacing={2}>
             <Typography variant="h5">Comentarios</Typography>
 
             {commentsQuery.isLoading && (
@@ -69,6 +108,13 @@ export function ProjectDetailPage() {
           </Stack>
         </Stack>
       </Container>
+
+      <TaskFormDialog
+        open={createTaskOpen}
+        task={null}
+        onClose={() => setCreateTaskOpen(false)}
+        onCreate={(input) => createTaskMutation.mutateAsync(input).then(() => setCreateTaskOpen(false))}
+      />
     </>
   )
 }
