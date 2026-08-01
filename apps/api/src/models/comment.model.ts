@@ -4,6 +4,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NonAttribute,
   Sequelize
 } from "sequelize"
 
@@ -17,6 +18,7 @@ export class CommentModel extends Model<InferAttributes<CommentModel>, InferCrea
   declare updatedAt: CreationOptional<Date>
   declare archivedAt: Date | null
   declare deletedAt: Date | null
+  declare author?: NonAttribute<{ id: string; name: string }>
 }
 
 export function initCommentModel(sequelize: Sequelize): typeof CommentModel {

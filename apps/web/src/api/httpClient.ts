@@ -55,3 +55,16 @@ export async function httpPatch<T>(url: string, body: unknown, options: HttpRequ
 
   return parseJsonResponse<T>(response)
 }
+
+export async function httpDelete<T>(url: string, body: unknown, options: HttpRequestOptions = {}): Promise<T> {
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      "content-type": "application/json",
+      ...buildAuthHeaders(options)
+    },
+    body: JSON.stringify(body)
+  })
+
+  return parseJsonResponse<T>(response)
+}
