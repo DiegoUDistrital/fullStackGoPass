@@ -4,6 +4,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NonAttribute,
   Sequelize
 } from "sequelize"
 
@@ -20,6 +21,7 @@ export class TaskModel extends Model<InferAttributes<TaskModel>, InferCreationAt
   declare updatedAt: CreationOptional<Date>
   declare archivedAt: Date | null
   declare deletedAt: Date | null
+  declare assignedUser?: NonAttribute<{ id: string; name: string } | null>
 }
 
 export function initTaskModel(sequelize: Sequelize): typeof TaskModel {

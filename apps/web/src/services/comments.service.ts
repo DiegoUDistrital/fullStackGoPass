@@ -25,3 +25,13 @@ export async function createProjectComment(token: string, projectId: string, con
   const response = await httpPost<CommentResponse>(`/api/projects/${projectId}/comments`, { content }, { token })
   return response.data
 }
+
+export async function listTaskComments(token: string, taskId: string): Promise<Comment[]> {
+  const response = await httpGet<CommentListResponse>(`/api/tasks/${taskId}/comments`, { token })
+  return response.data
+}
+
+export async function createTaskComment(token: string, taskId: string, content: string): Promise<Comment> {
+  const response = await httpPost<CommentResponse>(`/api/tasks/${taskId}/comments`, { content }, { token })
+  return response.data
+}

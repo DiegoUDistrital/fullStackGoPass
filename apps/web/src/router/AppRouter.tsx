@@ -4,6 +4,7 @@ import { HealthPage } from "../pages/HealthPage"
 import { LoginPage } from "../pages/LoginPage"
 import { ProjectDetailPage } from "../pages/ProjectDetailPage"
 import { ProjectsPage } from "../pages/ProjectsPage"
+import { TaskDetailPage } from "../pages/TaskDetailPage"
 import { UsersPage } from "../pages/UsersPage"
 import { AdminRoute } from "./AdminRoute"
 import { ProtectedRoute } from "./ProtectedRoute"
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/projects/:id",
         element: <ProjectDetailPage />
+      },
+      {
+        path: "/projects/:projectId/tasks/:taskId",
+        element: <TaskDetailPage />
       },
       {
         element: <AdminRoute />,

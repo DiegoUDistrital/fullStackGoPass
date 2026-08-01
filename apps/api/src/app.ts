@@ -4,6 +4,7 @@ import { notFoundMiddleware } from "./middlewares/not-found.middleware"
 import { authRouter } from "./routes/auth.route"
 import { healthRouter } from "./routes/health.route"
 import { projectRouter } from "./routes/project.route"
+import { taskRouter } from "./routes/task.route"
 import { userRouter } from "./routes/user.route"
 
 export function createApp() {
@@ -14,6 +15,7 @@ export function createApp() {
   app.use("/api", authRouter)
   app.use("/api", userRouter)
   app.use("/api", projectRouter)
+  app.use("/api", taskRouter)
   app.use(notFoundMiddleware)
   app.use(errorMiddleware)
 
