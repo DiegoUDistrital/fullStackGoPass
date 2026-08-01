@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { ChangePasswordPage } from "../pages/ChangePasswordPage"
+import { DashboardPage } from "../pages/DashboardPage"
 import { HealthPage } from "../pages/HealthPage"
 import { LoginPage } from "../pages/LoginPage"
 import { ProjectDetailPage } from "../pages/ProjectDetailPage"
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
           {
             path: "/users",
             element: <UsersPage />
+          },
+          {
+            path: "/dashboard",
+            element: <DashboardPage />
           }
         ]
       }

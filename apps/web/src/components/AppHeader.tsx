@@ -28,6 +28,11 @@ export function AppHeader() {
               Usuarios
             </Button>
           )}
+          {session.user?.role === "admin" && (
+            <Button component={RouterLink} to="/dashboard">
+              Dashboard
+            </Button>
+          )}
           <Button component={RouterLink} to="/account/password">
             Cambiar contraseña
           </Button>
