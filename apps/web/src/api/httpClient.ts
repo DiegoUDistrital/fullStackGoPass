@@ -42,3 +42,16 @@ export async function httpPost<T>(url: string, body: unknown, options: HttpReque
 
   return parseJsonResponse<T>(response)
 }
+
+export async function httpPatch<T>(url: string, body: unknown, options: HttpRequestOptions = {}): Promise<T> {
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      ...buildAuthHeaders(options)
+    },
+    body: JSON.stringify(body)
+  })
+
+  return parseJsonResponse<T>(response)
+}

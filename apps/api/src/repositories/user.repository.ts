@@ -25,12 +25,17 @@ export class UserRepository {
     return UserModel.findAll()
   }
 
+  public countActiveAdmins() {
+    return UserModel.count({ where: { role: "admin", state: "active" } })
+  }
+
   public async updateById(
     id: string,
     data: Partial<{
       name: string
       professionalProfile: string
       passwordHash: string
+      role: "admin" | "user"
       state: "active" | "inactive"
     }>
   ) {

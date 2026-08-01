@@ -5,6 +5,19 @@ import { AuthService } from "../services/auth.service"
 import { AuthTokenPayload } from "../types/auth"
 import { HttpError } from "../types/http-error"
 
+export function requireRole(...allowedRoles: Array<"admin" | "user">) {
+  return function roleMiddleware(request: Request, _response: Response, next: NextFunction): void {
+    const role = request.authenticatedUser?.role
+
+    if (!role || !allowedRoles.includes(role)) {
+      next(new HttpError("No autorizado", 403))
+      return
+    }
+
+    next()
+  }
+}
+
 export function validateLoginPayload(request: Request, _response: Response, next: NextFunction): void {
   const { accessIdentifier, password } = request.body ?? {}
 
