@@ -113,7 +113,7 @@ export function ProjectFormDialog({ open, project, onClose, onCreate, onUpdate }
               helperText={errors.eta ? "Este campo es requerido" : undefined}
               {...register("eta", { required: true })}
             />
-            <TextField select label="Estado" {...register("state", { required: true })}>
+            <TextField select label="Estado" defaultValue="planned" {...register("state", { required: true })}>
               <MenuItem value="planned">Planeado</MenuItem>
               <MenuItem value="active">Activo</MenuItem>
               <MenuItem value="on_hold">En espera</MenuItem>

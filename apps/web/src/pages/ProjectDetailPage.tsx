@@ -54,7 +54,9 @@ export function ProjectDetailPage() {
               <Typography variant="h4">{project.name}</Typography>
               <Chip label={STATE_LABELS[project.state] ?? project.state} sx={{ alignSelf: "flex-start" }} />
               <Typography color="text.secondary">{project.description}</Typography>
-              <Typography variant="body2">ETA: {new Date(project.eta).toLocaleDateString()}</Typography>
+              <Typography variant="body2">
+                ETA: {new Date(project.eta).toLocaleDateString(undefined, { timeZone: "UTC" })}
+              </Typography>
             </Stack>
           )}
 

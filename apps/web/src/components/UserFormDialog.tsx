@@ -113,6 +113,7 @@ export function UserFormDialog({ open, user, onClose, onCreate, onUpdate }: User
             <TextField
               select
               label="Rol"
+              defaultValue="user"
               disabled={isEditingSelf}
               helperText={isEditingSelf ? "No puede cambiar su propio rol" : undefined}
               {...register("role", { required: true })}

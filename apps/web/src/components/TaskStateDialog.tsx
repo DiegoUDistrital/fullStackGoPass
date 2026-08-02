@@ -81,7 +81,13 @@ export function TaskStateDialog({ open, currentState, onClose, onConfirm }: Task
       <Box component="form" onSubmit={onSubmit} noValidate>
         <DialogContent>
           <Stack spacing={2}>
-            <TextField select label="Nuevo estado" {...register("state", { required: true })}>
+            <TextField
+              select
+              label="Nuevo estado"
+              key={currentState}
+              defaultValue={targets[0]}
+              {...register("state", { required: true })}
+            >
               {targets.map((state) => (
                 <MenuItem key={state} value={state}>
                   {STATE_LABELS[state]}
@@ -93,6 +99,7 @@ export function TaskStateDialog({ open, currentState, onClose, onConfirm }: Task
                 label="Comentario (obligatorio al reabrir)"
                 multiline
                 minRows={2}
+                defaultValue=""
                 error={Boolean(errors.comment)}
                 helperText={errors.comment ? "El comentario es obligatorio" : undefined}
                 {...register("comment", { required: isReopening })}

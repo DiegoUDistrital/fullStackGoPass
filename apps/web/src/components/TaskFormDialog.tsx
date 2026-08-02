@@ -105,7 +105,7 @@ export function TaskFormDialog({ open, task, onClose, onCreate, onUpdate }: Task
               helperText={errors.description ? "Este campo es requerido" : undefined}
               {...register("description", { required: true })}
             />
-            <TextField select label="Prioridad" {...register("priority", { required: true })}>
+            <TextField select label="Prioridad" defaultValue="medium" {...register("priority", { required: true })}>
               <MenuItem value="urgent">Urgente</MenuItem>
               <MenuItem value="high">Alta</MenuItem>
               <MenuItem value="medium">Media</MenuItem>
