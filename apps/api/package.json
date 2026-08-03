@@ -12,7 +12,9 @@
     "test": "node --import tsx --test tests/**/*.test.js tests/**/*.test.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed:admin": "tsx scripts/seed-admin.ts",
-    "db:setup": "npm run db:migrate && npm run db:seed:admin"
+    "db:seed:demo": "tsx scripts/seed-demo.ts",
+    "db:setup": "npm run db:migrate && npm run db:seed:admin",
+    "db:setup:demo": "npm run db:migrate && npm run db:seed:demo"
   },
   "keywords": [
     "express",
@@ -28,5 +30,12 @@
     "pg-hstore": "^2.3.4",
     "pino": "^10.3.1",
     "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.13.3",
+    "tsx": "^4.23.5",
+    "typescript": "~6.0.2"
   }
 }
