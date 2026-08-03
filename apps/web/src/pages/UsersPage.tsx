@@ -1,6 +1,5 @@
 import { useState } from "react"
-import { Alert, Box, Button, CircularProgress, Container, Stack, Typography } from "@mui/material"
-import { AppHeader } from "../components/AppHeader"
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import { UserFormDialog } from "../components/UserFormDialog"
 import { UserTable } from "../components/UserTable"
 import {
@@ -34,37 +33,34 @@ export function UsersPage() {
 
   return (
     <>
-      <AppHeader />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Stack spacing={3}>
-          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-            <Typography variant="h4">Gestión de usuarios</Typography>
-            <Button variant="contained" onClick={openCreateDialog}>
-              Crear usuario
-            </Button>
-          </Stack>
-
-          {isLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
-          )}
-
-          {isError && (
-            <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar usuarios"}</Alert>
-          )}
-
-          {setStateMutation.isError && (
-            <Alert severity="error">
-              {setStateMutation.error instanceof Error
-                ? setStateMutation.error.message
-                : "Error al cambiar el estado del usuario"}
-            </Alert>
-          )}
-
-          {users && <UserTable users={users} onEdit={openEditDialog} onToggleState={handleToggleState} />}
+      <Stack spacing={3}>
+        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+          <Typography variant="h4">Gestión de usuarios</Typography>
+          <Button variant="contained" onClick={openCreateDialog}>
+            Crear usuario
+          </Button>
         </Stack>
-      </Container>
+
+        {isLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {isError && (
+          <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar usuarios"}</Alert>
+        )}
+
+        {setStateMutation.isError && (
+          <Alert severity="error">
+            {setStateMutation.error instanceof Error
+              ? setStateMutation.error.message
+              : "Error al cambiar el estado del usuario"}
+          </Alert>
+        )}
+
+        {users && <UserTable users={users} onEdit={openEditDialog} onToggleState={handleToggleState} />}
+      </Stack>
 
       <UserFormDialog
         open={dialogState.open}

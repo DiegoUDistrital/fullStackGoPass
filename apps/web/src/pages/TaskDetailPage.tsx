@@ -1,7 +1,6 @@
 import { useState } from "react"
-import { Alert, Box, Button, Chip, CircularProgress, Container, Divider, Stack, Typography } from "@mui/material"
+import { Alert, Box, Button, Chip, CircularProgress, Divider, Stack, Typography } from "@mui/material"
 import { useParams } from "react-router-dom"
-import { AppHeader } from "../components/AppHeader"
 import { CommentForm } from "../components/CommentForm"
 import { CommentList } from "../components/CommentList"
 import { ProjectLifecycleDialog } from "../components/ProjectLifecycleDialog"
@@ -18,23 +17,13 @@ import {
   useUnassignTaskMutation,
   useUpdateTaskMutation
 } from "../hooks/useTasks"
-
-const STATE_LABELS: Record<string, string> = {
-  open: "Abierta",
-  to_do: "Por hacer",
-  in_process: "En proceso",
-  testing: "Testing",
-  qa: "QA",
-  on_hold: "En espera",
-  finished: "Finalizada"
-}
-
-const PRIORITY_LABELS: Record<string, string> = {
-  urgent: "Urgente",
-  high: "Alta",
-  medium: "Media",
-  low: "Baja"
-}
+import {
+  TASK_PRIORITY_COLORS,
+  TASK_PRIORITY_LABELS,
+  TASK_STATE_COLORS,
+  TASK_STATE_LABELS,
+  TASK_STATE_VARIANTS
+} from "../theme/status"
 
 export function TaskDetailPage() {
   const { projectId, taskId } = useParams<{ projectId: string; taskId: string }>()
@@ -66,104 +55,111 @@ export function TaskDetailPage() {
 
   return (
     <>
-      <AppHeader />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Stack spacing={3}>
-          {isLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
+      <Stack spacing={3}>
+        {isLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {isError && (
+          <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar la tarea"}</Alert>
+        )}
+
+        {task && (
+          <Stack spacing={1}>
+            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
+              <Typography variant="h4">{task.title}</Typography>
+              {isAdmin && (
+                <Stack direction="row" spacing={1}>
+                  <Button size="small" onClick={() => setEditOpen(true)}>
+                    Editar
+                  </Button>
+                  {task.assignedUserId ? (
+                    <>
+                      <Button size="small" onClick={() => setAssignOpen(true)}>
+                        Reasignar
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() =>
+                          task.state === "finished" ? setUnassignOpen(true) : unassignMutation.mutate(undefined)
+                        }
+                      >
+                        Desasignar
+                      </Button>
+                    </>
+                  ) : (
+                    <Button size="small" onClick={() => setAssignOpen(true)}>
+                      Asignar
+                    </Button>
+                  )}
+                  <Button size="small" color="error" onClick={() => setDeleteOpen(true)}>
+                    Eliminar
+                  </Button>
+                </Stack>
+              )}
+            </Stack>
+
+            <Stack direction="row" spacing={1}>
+              <Chip
+                label={TASK_STATE_LABELS[task.state]}
+                color={TASK_STATE_COLORS[task.state]}
+                variant={TASK_STATE_VARIANTS[task.state]}
+                size="small"
+              />
+              <Chip
+                label={TASK_PRIORITY_LABELS[task.priority]}
+                color={TASK_PRIORITY_COLORS[task.priority]}
+                size="small"
+                variant="outlined"
+              />
+            </Stack>
+
+            <Typography color="text.secondary">{task.description}</Typography>
+            <Typography variant="body2">
+              Fecha límite: {new Date(task.dueDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
+            </Typography>
+            <Typography variant="body2">Asignado a: {task.assignedUserName ?? "Sin asignar"}</Typography>
+
+            {canChangeState && (
+              <Button variant="outlined" sx={{ alignSelf: "flex-start" }} onClick={() => setStateOpen(true)}>
+                Cambiar estado
+              </Button>
+            )}
+
+            {unassignMutation.isError && (
+              <Alert severity="error">
+                {unassignMutation.error instanceof Error
+                  ? unassignMutation.error.message
+                  : "Error al desasignar la tarea"}
+              </Alert>
+            )}
+          </Stack>
+        )}
+
+        <Divider />
+
+        <Stack spacing={2}>
+          <Typography variant="h5">Comentarios</Typography>
+
+          {commentsQuery.isLoading && (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+              <CircularProgress size={24} />
             </Box>
           )}
 
-          {isError && (
-            <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar la tarea"}</Alert>
+          {commentsQuery.isError && (
+            <Alert severity="error">
+              {commentsQuery.error instanceof Error ? commentsQuery.error.message : "Error al cargar comentarios"}
+            </Alert>
           )}
 
-          {task && (
-            <Stack spacing={1}>
-              <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
-                <Typography variant="h4">{task.title}</Typography>
-                {isAdmin && (
-                  <Stack direction="row" spacing={1}>
-                    <Button size="small" onClick={() => setEditOpen(true)}>
-                      Editar
-                    </Button>
-                    {task.assignedUserId ? (
-                      <>
-                        <Button size="small" onClick={() => setAssignOpen(true)}>
-                          Reasignar
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() =>
-                            task.state === "finished" ? setUnassignOpen(true) : unassignMutation.mutate(undefined)
-                          }
-                        >
-                          Desasignar
-                        </Button>
-                      </>
-                    ) : (
-                      <Button size="small" onClick={() => setAssignOpen(true)}>
-                        Asignar
-                      </Button>
-                    )}
-                    <Button size="small" color="error" onClick={() => setDeleteOpen(true)}>
-                      Eliminar
-                    </Button>
-                  </Stack>
-                )}
-              </Stack>
+          {commentsQuery.data && <CommentList comments={commentsQuery.data} />}
 
-              <Stack direction="row" spacing={1}>
-                <Chip label={STATE_LABELS[task.state] ?? task.state} size="small" />
-                <Chip label={PRIORITY_LABELS[task.priority] ?? task.priority} size="small" variant="outlined" />
-              </Stack>
-
-              <Typography color="text.secondary">{task.description}</Typography>
-              <Typography variant="body2">
-                Fecha límite: {new Date(task.dueDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
-              </Typography>
-              <Typography variant="body2">Asignado a: {task.assignedUserName ?? "Sin asignar"}</Typography>
-
-              {canChangeState && (
-                <Button variant="outlined" sx={{ alignSelf: "flex-start" }} onClick={() => setStateOpen(true)}>
-                  Cambiar estado
-                </Button>
-              )}
-
-              {unassignMutation.isError && (
-                <Alert severity="error">
-                  {unassignMutation.error instanceof Error
-                    ? unassignMutation.error.message
-                    : "Error al desasignar la tarea"}
-                </Alert>
-              )}
-            </Stack>
-          )}
-
-          <Divider />
-
-          <Stack spacing={2}>
-            <Typography variant="h5">Comentarios</Typography>
-
-            {commentsQuery.isLoading && (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                <CircularProgress size={24} />
-              </Box>
-            )}
-
-            {commentsQuery.isError && (
-              <Alert severity="error">
-                {commentsQuery.error instanceof Error ? commentsQuery.error.message : "Error al cargar comentarios"}
-              </Alert>
-            )}
-
-            {commentsQuery.data && <CommentList comments={commentsQuery.data} />}
-
-            <CommentForm onSubmit={(content) => createCommentMutation.mutateAsync(content)} />
-          </Stack>
+          <CommentForm onSubmit={(content) => createCommentMutation.mutateAsync(content)} />
         </Stack>
-      </Container>
+      </Stack>
 
       {task && (
         <>

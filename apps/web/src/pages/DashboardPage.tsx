@@ -1,5 +1,6 @@
-import { Alert, Box, CircularProgress, Container, Divider, Stack, Typography } from "@mui/material"
-import { AppHeader } from "../components/AppHeader"
+import { Alert, Box, CircularProgress, Divider, Stack, Typography } from "@mui/material"
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined"
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"
 import { DueTasksList } from "../components/DueTasksList"
 import { ProjectProgressList } from "../components/ProjectProgressList"
 import { StatTile } from "../components/StatTile"
@@ -11,73 +12,76 @@ export function DashboardPage() {
   const { data, isLoading, isError, error } = useDashboardQuery()
 
   return (
-    <>
-      <AppHeader />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Stack spacing={3}>
-          <Typography variant="h4">Dashboard</Typography>
+    <Stack spacing={3}>
+      <Typography variant="h4">Dashboard</Typography>
 
-          {isLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
-          )}
+      {isLoading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
 
-          {isError && (
-            <Alert severity="error">
-              {error instanceof Error ? error.message : "Error al cargar el dashboard"}
-            </Alert>
-          )}
+      {isError && (
+        <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar el dashboard"}</Alert>
+      )}
 
-          {data && (
-            <>
-              <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
-                <StatTile label="Proyectos activos" value={data.activeProjectsCount} />
-                <StatTile label="Usuarios con tareas pendientes" value={data.userWorkload.length} />
-              </Stack>
+      {data && (
+        <>
+          <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
+            <StatTile
+              label="Proyectos activos"
+              value={data.activeProjectsCount}
+              icon={FolderOutlinedIcon}
+              color="primary"
+            />
+            <StatTile
+              label="Usuarios con tareas pendientes"
+              value={data.userWorkload.length}
+              icon={GroupOutlinedIcon}
+              color="warning"
+            />
+          </Stack>
 
-              <Divider />
+          <Divider />
 
-              <Stack spacing={2}>
-                <Typography variant="h5">Progreso por proyecto</Typography>
-                <ProjectProgressList projects={data.projectsProgress} />
-              </Stack>
+          <Stack spacing={2}>
+            <Typography variant="h5">Progreso por proyecto</Typography>
+            <ProjectProgressList projects={data.projectsProgress} />
+          </Stack>
 
-              <Divider />
+          <Divider />
 
-              <Stack spacing={2}>
-                <Typography variant="h5">Distribución de tareas</Typography>
-                <TaskStateDistributionTable distribution={data.taskStateDistribution} />
-              </Stack>
+          <Stack spacing={2}>
+            <Typography variant="h5">Distribución de tareas</Typography>
+            <TaskStateDistributionTable distribution={data.taskStateDistribution} />
+          </Stack>
 
-              <Divider />
+          <Divider />
 
-              <Stack spacing={2}>
-                <Typography variant="h5">Carga de trabajo por usuario</Typography>
-                <UserWorkloadTable workload={data.userWorkload} />
-              </Stack>
+          <Stack spacing={2}>
+            <Typography variant="h5">Carga de trabajo por usuario</Typography>
+            <UserWorkloadTable workload={data.userWorkload} />
+          </Stack>
 
-              <Divider />
+          <Divider />
 
-              <Stack spacing={2}>
-                <Typography variant="h5">Tareas próximas a vencer</Typography>
-                <DueTasksList
-                  tasks={data.upcomingDueTasks}
-                  emptyLabel="Sin tareas próximas a vencer."
-                  severity="warning"
-                />
-              </Stack>
+          <Stack spacing={2}>
+            <Typography variant="h5">Tareas próximas a vencer</Typography>
+            <DueTasksList
+              tasks={data.upcomingDueTasks}
+              emptyLabel="Sin tareas próximas a vencer."
+              severity="warning"
+            />
+          </Stack>
 
-              <Divider />
+          <Divider />
 
-              <Stack spacing={2}>
-                <Typography variant="h5">Tareas vencidas</Typography>
-                <DueTasksList tasks={data.overdueTasks} emptyLabel="Sin tareas vencidas." severity="error" />
-              </Stack>
-            </>
-          )}
-        </Stack>
-      </Container>
-    </>
+          <Stack spacing={2}>
+            <Typography variant="h5">Tareas vencidas</Typography>
+            <DueTasksList tasks={data.overdueTasks} emptyLabel="Sin tareas vencidas." severity="error" />
+          </Stack>
+        </>
+      )}
+    </Stack>
   )
 }

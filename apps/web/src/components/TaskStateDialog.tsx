@@ -13,14 +13,7 @@ import {
 } from "@mui/material"
 import { useForm } from "react-hook-form"
 import type { TaskLifecycleState, TaskState } from "../services/tasks.service"
-
-const STATE_LABELS: Record<TaskLifecycleState, string> = {
-  in_process: "En proceso",
-  testing: "Testing",
-  qa: "QA",
-  on_hold: "En espera",
-  finished: "Finalizada"
-}
+import { TASK_STATE_LABELS } from "../theme/status"
 
 interface StateFormValues {
   state: TaskLifecycleState
@@ -90,7 +83,7 @@ export function TaskStateDialog({ open, currentState, onClose, onConfirm }: Task
             >
               {targets.map((state) => (
                 <MenuItem key={state} value={state}>
-                  {STATE_LABELS[state]}
+                  {TASK_STATE_LABELS[state]}
                 </MenuItem>
               ))}
             </TextField>
