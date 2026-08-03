@@ -13,17 +13,15 @@ const adminConfig = {
 }
 
 async function run() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Este script borra todos los datos existentes; no puede ejecutarse con NODE_ENV=production.")
+  }
+
   const client = new Client({ connectionString: databaseUrl })
   await client.connect()
 
   try {
-    const existing = await client.query("SELECT id FROM users WHERE access_identifier = $1", [
-      adminConfig.accessIdentifier
-    ])
-
-    if (existing.rowCount && existing.rowCount > 0) {
-      return
-    }
+    await client.query("TRUNCATE TABLE comments, tasks, projects, users RESTART IDENTITY CASCADE")
 
     await client.query(
       `
@@ -38,6 +36,10 @@ async function run() {
         adminConfig.professionalProfile,
         hashPassword(adminConfig.password)
       ]
+    )
+
+    process.stdout.write(
+      `Base de datos reiniciada. Administrador '${adminConfig.accessIdentifier}' creado.\n`
     )
   } finally {
     await client.end()

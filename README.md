@@ -67,7 +67,7 @@ fullStackGoPass/
 ├── apps/
 │   ├── api/                  # Backend Express + TypeScript + Sequelize
 │   │   ├── migrations/       # Migraciones SQL versionadas
-│   │   ├── scripts/          # migrate.ts, seed-admin.ts
+│   │   ├── scripts/          # migrate.ts, seed-admin.ts, seed-demo.ts
 │   │   ├── src/
 │   │   │   ├── config/       # env, logger (Pino)
 │   │   │   ├── controllers/
@@ -157,8 +157,24 @@ npm run db:setup --prefix apps/api
 
 Este comando ejecuta, en orden:
 
-1. `db:migrate`: aplica todas las migraciones SQL en `apps/api/migrations/`, dejando registro de cuáles ya se aplicaron en la tabla `schema_migrations` (es seguro ejecutarlo varias veces).
-2. `db:seed:admin`: crea el usuario administrador inicial (`admin` / `admin1234` por defecto) únicamente si no existe.
+1. `db:migrate`: aplica todas las migraciones SQL en `apps/api/migrations/`, dejando registro de cuáles ya se aplicaron en la tabla `schema_migrations` (es seguro ejecutarlo varias veces, nunca borra datos).
+2. `db:seed:admin`: **borra todos los datos existentes** (usuarios, proyectos, tareas y comentarios) y crea únicamente el usuario administrador inicial (`admin` / `admin1234` por defecto).
+
+**Alternativa con datos de demo:** para una base de datos con contenido representativo (varios proyectos, tareas en todos los estados posibles, comentarios y usuarios adicionales) en lugar de una base con solo el administrador inicial, usar:
+
+```bash
+npm run db:setup:demo --prefix apps/api
+```
+
+Esto ejecuta `db:migrate` y `db:seed:demo`. `db:seed:demo` **también borra todos los datos existentes** y siembra desde cero:
+
+- 2 administradores: `admin` / `admin1234` (el inicial, mismas variables de entorno que `db:seed:admin`) y `laura.admin` / `admin1234`.
+- 5 usuarios estándar con identificadores legibles (`carlos.ruiz`, `maria.gomez`, `juan.lopez`, `ana.torres`, `pedro.diaz`), todos con contraseña `demo1234`.
+- 4 proyectos en distintos estados (`planned`, `active`, `on_hold`, `completed`).
+- 13 tareas repartidas entre esos proyectos, cubriendo los 7 estados posibles (`open`, `to_do`, `in_process`, `testing`, `qa`, `on_hold`, `finished`), con fechas límite calculadas de forma relativa a la fecha de ejecución para que siempre haya tareas próximas a vencer y tareas vencidas en el dashboard.
+- Comentarios en proyectos y tareas.
+
+**Importante:** tanto `db:seed:admin` como `db:seed:demo` son destructivos por diseño — cada uno deja la base de datos con *únicamente* lo que ese script siembra, sin importar qué había antes. Se puede alternar libremente entre `npm run db:seed:admin --prefix apps/api` y `npm run db:seed:demo --prefix apps/api` para resetear la base a uno u otro estado. Ninguno de los dos se ejecuta si `NODE_ENV=production`.
 
 ### 4. Levantar el backend y el frontend
 
@@ -196,9 +212,11 @@ Scripts específicos de `apps/api` (ejecutar con `--prefix apps/api` desde la ra
 
 | Script | Descripción |
 |---|---|
-| `npm run db:migrate` | Aplica las migraciones SQL pendientes |
-| `npm run db:seed:admin` | Crea el administrador inicial si no existe |
-| `npm run db:setup` | Ejecuta migraciones y seed en un solo paso |
+| `npm run db:migrate` | Aplica las migraciones SQL pendientes (no destructivo) |
+| `npm run db:seed:admin` | **Borra todos los datos** y crea únicamente el administrador inicial |
+| `npm run db:seed:demo` | **Borra todos los datos** y siembra el set de datos de demo (ver [sección 3](#3-ejecutar-migraciones-y-seed-del-administrador-inicial)) |
+| `npm run db:setup` | Ejecuta migraciones + `db:seed:admin` en un solo paso |
+| `npm run db:setup:demo` | Ejecuta migraciones + `db:seed:demo` en un solo paso |
 | `npm run start` | Ejecuta el build compilado (`dist/server.js`) |
 
 ## Pruebas
@@ -278,6 +296,7 @@ Ver el detalle completo en [`INSTRUCTIONS.md`](./INSTRUCTIONS.md). Resumen opera
 - Solo los administradores visualizan tareas en `open`.
 - Asignar un usuario → pasa automáticamente a `to_do`.
 - Desasignar → vuelve a `open`.
+- Estados intermedios disponibles una vez asignada: `to_do`, `in_process`, `testing`, `qa`, `on_hold`.
 - Solo puede finalizar (`finished`) desde `testing` o `qa`.
 - Reabrir una tarea `finished` (cambiar su estado o reasignarla) exige un comentario obligatorio.
 

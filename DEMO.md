@@ -2,6 +2,8 @@
 
 Guion para demostrar el flujo funcional completo del Sistema de Gestión de Proyectos y Tareas. Requiere el proyecto levantado según [`README.md`](./README.md) (PostgreSQL arriba, migraciones y seed aplicados, backend en `http://localhost:3001` y frontend en `http://localhost:5173`).
 
+**Demo con datos ya cargados:** este guion asume una base vacía (solo el administrador inicial) y construye los datos paso a paso. Si en cambio se levantó con `npm run db:setup:demo --prefix apps/api` (ver README), ya existen 4 proyectos, 13 tareas en los 7 estados posibles, 2 administradores, 5 usuarios y varios comentarios — útil para saltar directo al Paso 9 (Dashboard) o explorar datos variados sin ejecutar los pasos de creación manual.
+
 ## 1. Presentación del problema
 
 Una organización necesita gestionar proyectos y las tareas asociadas, con dos roles:
