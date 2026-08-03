@@ -1,14 +1,11 @@
-import { Button, Chip, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
+import { Chip, IconButton, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip } from "@mui/material"
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined"
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined"
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined"
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined"
 import { Link as RouterLink } from "react-router-dom"
 import type { Project } from "../services/projects.service"
-
-const STATE_LABELS: Record<Project["state"], string> = {
-  planned: "Planeado",
-  active: "Activo",
-  on_hold: "En espera",
-  completed: "Completado",
-  archived: "Archivado"
-}
+import { PROJECT_STATE_COLORS, PROJECT_STATE_LABELS, PROJECT_STATE_VARIANTS } from "../theme/status"
 
 interface ProjectTableProps {
   projects: Project[]
@@ -33,30 +30,45 @@ export function ProjectTable({ projects, isAdmin, onEdit, onArchive, onDelete }:
         <TableBody>
           {projects.map((project) => (
             <TableRow key={project.id}>
-              <TableCell>{project.name}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{project.name}</TableCell>
               <TableCell>
-                <Chip label={STATE_LABELS[project.state]} size="small" />
+                <Chip
+                  label={PROJECT_STATE_LABELS[project.state]}
+                  color={PROJECT_STATE_COLORS[project.state]}
+                  variant={PROJECT_STATE_VARIANTS[project.state]}
+                  size="small"
+                />
               </TableCell>
               <TableCell>{new Date(project.eta).toLocaleDateString(undefined, { timeZone: "UTC" })}</TableCell>
               <TableCell align="right">
-                <Button size="small" component={RouterLink} to={`/projects/${project.id}`}>
-                  Ver
-                </Button>
-                {isAdmin && project.state !== "archived" && (
-                  <>
-                    <Button size="small" onClick={() => onEdit(project)}>
-                      Editar
-                    </Button>
-                    <Button size="small" onClick={() => onArchive(project)}>
-                      Archivar
-                    </Button>
-                  </>
-                )}
-                {isAdmin && project.state === "archived" && (
-                  <Button size="small" color="error" onClick={() => onDelete(project)}>
-                    Eliminar
-                  </Button>
-                )}
+                <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
+                  <Tooltip title="Ver">
+                    <IconButton size="small" component={RouterLink} to={`/projects/${project.id}`}>
+                      <VisibilityOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  {isAdmin && project.state !== "archived" && (
+                    <>
+                      <Tooltip title="Editar">
+                        <IconButton size="small" onClick={() => onEdit(project)}>
+                          <EditOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Archivar">
+                        <IconButton size="small" onClick={() => onArchive(project)}>
+                          <ArchiveOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                  {isAdmin && project.state === "archived" && (
+                    <Tooltip title="Eliminar">
+                      <IconButton size="small" color="error" onClick={() => onDelete(project)}>
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Stack>
               </TableCell>
             </TableRow>
           ))}

@@ -1,14 +1,19 @@
 import {
-  Button,
   Chip,
+  IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Tooltip
 } from "@mui/material"
+import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined"
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined"
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined"
 import type { AuthUser } from "../services/auth.service"
 
 interface UserTableProps {
@@ -35,9 +40,16 @@ export function UserTable({ users, onEdit, onToggleState }: UserTableProps) {
           {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.accessIdentifier}</TableCell>
-              <TableCell>{user.name}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{user.name}</TableCell>
               <TableCell>{user.professionalProfile}</TableCell>
-              <TableCell>{user.role}</TableCell>
+              <TableCell>
+                <Chip
+                  label={user.role === "admin" ? "Administrador" : "Usuario"}
+                  color={user.role === "admin" ? "primary" : "default"}
+                  variant="outlined"
+                  size="small"
+                />
+              </TableCell>
               <TableCell>
                 <Chip
                   label={user.state === "active" ? "Activo" : "Inactivo"}
@@ -46,12 +58,22 @@ export function UserTable({ users, onEdit, onToggleState }: UserTableProps) {
                 />
               </TableCell>
               <TableCell align="right">
-                <Button size="small" onClick={() => onEdit(user)}>
-                  Editar
-                </Button>
-                <Button size="small" onClick={() => onToggleState(user)}>
-                  {user.state === "active" ? "Desactivar" : "Activar"}
-                </Button>
+                <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
+                  <Tooltip title="Editar">
+                    <IconButton size="small" onClick={() => onEdit(user)}>
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={user.state === "active" ? "Desactivar" : "Activar"}>
+                    <IconButton size="small" onClick={() => onToggleState(user)}>
+                      {user.state === "active" ? (
+                        <BlockOutlinedIcon fontSize="small" />
+                      ) : (
+                        <CheckCircleOutlineIcon fontSize="small" />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
               </TableCell>
             </TableRow>
           ))}

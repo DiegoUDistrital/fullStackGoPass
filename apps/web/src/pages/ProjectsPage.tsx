@@ -1,6 +1,5 @@
 import { useState } from "react"
-import { Alert, Box, Button, CircularProgress, Container, Stack, Typography } from "@mui/material"
-import { AppHeader } from "../components/AppHeader"
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import { ProjectFormDialog } from "../components/ProjectFormDialog"
 import { ProjectLifecycleDialog } from "../components/ProjectLifecycleDialog"
 import { ProjectTable } from "../components/ProjectTable"
@@ -52,39 +51,36 @@ export function ProjectsPage() {
 
   return (
     <>
-      <AppHeader />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Stack spacing={3}>
-          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-            <Typography variant="h4">Proyectos</Typography>
-            {isAdmin && (
-              <Button variant="contained" onClick={openCreateDialog}>
-                Crear proyecto
-              </Button>
-            )}
-          </Stack>
-
-          {isLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
-          )}
-
-          {isError && (
-            <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar proyectos"}</Alert>
-          )}
-
-          {projects && (
-            <ProjectTable
-              projects={projects}
-              isAdmin={isAdmin}
-              onEdit={openEditDialog}
-              onArchive={openArchiveDialog}
-              onDelete={openDeleteDialog}
-            />
+      <Stack spacing={3}>
+        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+          <Typography variant="h4">Proyectos</Typography>
+          {isAdmin && (
+            <Button variant="contained" onClick={openCreateDialog}>
+              Crear proyecto
+            </Button>
           )}
         </Stack>
-      </Container>
+
+        {isLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {isError && (
+          <Alert severity="error">{error instanceof Error ? error.message : "Error al cargar proyectos"}</Alert>
+        )}
+
+        {projects && (
+          <ProjectTable
+            projects={projects}
+            isAdmin={isAdmin}
+            onEdit={openEditDialog}
+            onArchive={openArchiveDialog}
+            onDelete={openDeleteDialog}
+          />
+        )}
+      </Stack>
 
       <ProjectFormDialog
         open={formDialog.open}

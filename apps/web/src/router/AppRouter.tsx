@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { AppLayout } from "../components/layout/AppLayout"
 import { ChangePasswordPage } from "../pages/ChangePasswordPage"
 import { DashboardPage } from "../pages/DashboardPage"
 import { HealthPage } from "../pages/HealthPage"
@@ -19,35 +20,40 @@ const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        path: "/",
-        element: <HealthPage />
-      },
-      {
-        path: "/account/password",
-        element: <ChangePasswordPage />
-      },
-      {
-        path: "/projects",
-        element: <ProjectsPage />
-      },
-      {
-        path: "/projects/:id",
-        element: <ProjectDetailPage />
-      },
-      {
-        path: "/projects/:projectId/tasks/:taskId",
-        element: <TaskDetailPage />
-      },
-      {
-        element: <AdminRoute />,
+        element: <AppLayout />,
         children: [
           {
-            path: "/users",
-            element: <UsersPage />
+            path: "/",
+            element: <HealthPage />
           },
           {
-            path: "/dashboard",
-            element: <DashboardPage />
+            path: "/account/password",
+            element: <ChangePasswordPage />
+          },
+          {
+            path: "/projects",
+            element: <ProjectsPage />
+          },
+          {
+            path: "/projects/:id",
+            element: <ProjectDetailPage />
+          },
+          {
+            path: "/projects/:projectId/tasks/:taskId",
+            element: <TaskDetailPage />
+          },
+          {
+            element: <AdminRoute />,
+            children: [
+              {
+                path: "/users",
+                element: <UsersPage />
+              },
+              {
+                path: "/dashboard",
+                element: <DashboardPage />
+              }
+            ]
           }
         ]
       }
