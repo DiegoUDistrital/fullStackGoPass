@@ -16,9 +16,10 @@ Este documento permite instalar, configurar, ejecutar y demostrar la solución c
 8. [Pruebas](#pruebas)
 9. [Build de producción](#build-de-producción)
 10. [Contrato de la API](#contrato-de-la-api)
-11. [Modelo funcional y reglas de negocio](#modelo-funcional-y-reglas-de-negocio)
-12. [Flujo end-to-end del sistema](#flujo-end-to-end-del-sistema)
-13. [Solución de problemas](#solución-de-problemas)
+11. [Modelo de datos](#modelo-de-datos)
+12. [Modelo funcional y reglas de negocio](#modelo-funcional-y-reglas-de-negocio)
+13. [Flujo end-to-end del sistema](#flujo-end-to-end-del-sistema)
+14. [Solución de problemas](#solución-de-problemas)
 
 ## Stack tecnológico
 
@@ -32,8 +33,14 @@ Este documento permite instalar, configurar, ejecutar y demostrar la solución c
 
 El frontend nunca accede directamente a PostgreSQL: toda interacción con la base de datos pasa exclusivamente por la API.
 
-```
-React (apps/web) → Express API (apps/api) → PostgreSQL
+```mermaid
+architecture-beta
+    service frontend(internet)[Frontend React]
+    service backend(server)[Backend Express API]
+    service db(database)[PostgreSQL]
+
+    frontend:R -- L:backend
+    backend:R -- L:db
 ```
 
 **Backend:** `Route → Middleware → Controller → Service → Repository → Sequelize → PostgreSQL`
@@ -279,6 +286,52 @@ Todas las rutas están montadas bajo el prefijo `/api`. Las rutas protegidas req
 | `POST /api/tasks/:id/comments` | Sí | Cualquiera | Crea un comentario en una tarea |
 | `GET /api/dashboard` | Sí | Admin | Indicadores calculados dinámicamente |
 
+## Modelo de datos
+
+Cuatro tablas relacionales, todas con auditoría/eliminación lógica (`created_at`, `updated_at`, `archived_at`, `deleted_at` — nunca `DELETE` físico).
+
+```mermaid
+erDiagram
+    USERS ||--o{ PROJECTS : "responsable (admin)"
+    USERS ||--o{ TASKS : "asignado a"
+    USERS ||--o{ COMMENTS : "autor"
+    PROJECTS ||--o{ TASKS : contiene
+    PROJECTS ||--o{ COMMENTS : tiene
+    TASKS ||--o{ COMMENTS : tiene
+
+    USERS {
+        uuid id PK
+        string access_identifier UK
+        string name
+        string role "admin | user"
+        string state "active | inactive"
+    }
+    PROJECTS {
+        uuid id PK
+        string name
+        uuid responsible_admin_id FK
+        timestamptz eta
+        string state "planned|active|on_hold|completed|archived"
+    }
+    TASKS {
+        uuid id PK
+        uuid project_id FK
+        uuid assigned_user_id FK "nullable"
+        string title
+        string priority "urgent|high|medium|low"
+        string state "open|to_do|in_process|testing|qa|on_hold|finished"
+    }
+    COMMENTS {
+        uuid id PK
+        uuid project_id FK "nullable"
+        uuid task_id FK "nullable"
+        uuid author_user_id FK
+        text content
+    }
+```
+
+Un comentario siempre pertenece a un proyecto **o** a una tarea, nunca a ambos ni a ninguno (`CHECK` constraint en la base de datos).
+
 ## Modelo funcional y reglas de negocio
 
 Ver el detalle completo en [`INSTRUCTIONS.md`](./INSTRUCTIONS.md). Resumen operativo:
@@ -290,6 +343,19 @@ Ver el detalle completo en [`INSTRUCTIONS.md`](./INSTRUCTIONS.md). Resumen opera
 
 **Estados de proyecto:** `planned → active → on_hold → completed`, y `archived` (eliminación lógica solo desde `archived`).
 
+```mermaid
+flowchart LR
+    Planned[Planeado] --> Active[Activo]
+    Active --> OnHold[En espera]
+    OnHold --> Active
+    Active --> Completed[Completado]
+    Planned --> Archived[Archivado]
+    Active --> Archived
+    OnHold --> Archived
+    Completed --> Archived
+    Archived -- "eliminar\ncomentario obligatorio" --> Deleted[Eliminado lógicamente]
+```
+
 **Estados de tarea y transiciones:**
 
 - Toda tarea nueva inicia en `open`.
@@ -299,6 +365,15 @@ Ver el detalle completo en [`INSTRUCTIONS.md`](./INSTRUCTIONS.md). Resumen opera
 - Estados intermedios disponibles una vez asignada: `to_do`, `in_process`, `testing`, `qa`, `on_hold`.
 - Solo puede finalizar (`finished`) desde `testing` o `qa`.
 - Reabrir una tarea `finished` (cambiar su estado o reasignarla) exige un comentario obligatorio.
+
+```mermaid
+flowchart LR
+    Open["open\nsolo la ve el admin"] -- "asignar usuario" --> ToDo[to_do]
+    ToDo -- "desasignar" --> Open
+    ToDo --> Work["in_process / testing / qa / on_hold\n(se mueve libremente entre estos)"]
+    Work -- "finalizar\nsolo desde testing o qa" --> Finished[finished]
+    Finished -- "reabrir\ncomentario obligatorio" --> Work
+```
 
 **Prioridades:** `urgent`, `high`, `medium`, `low`.
 
@@ -320,6 +395,28 @@ Ver el detalle completo en [`INSTRUCTIONS.md`](./INSTRUCTIONS.md). Resumen opera
 8. En cualquier punto, administrador o usuario asignado pueden comentar en el proyecto o en la tarea.
 9. El administrador consulta el dashboard (`/dashboard`) y ve indicadores recalculados en tiempo real: proyectos activos, progreso por proyecto, distribución de tareas, carga por usuario, tareas próximas a vencer y vencidas.
 10. Un proyecto solo puede archivarse (con comentario obligatorio) y, una vez archivado, eliminarse lógicamente (también con comentario obligatorio).
+
+El flujo completo es una colaboración entre los dos roles: el administrador prepara y cierra el trabajo, el usuario lo ejecuta en el medio.
+
+```mermaid
+flowchart TD
+    subgraph ADMIN["Administrador"]
+        A1[Login] --> A2[Crear usuarios]
+        A2 --> A3["Crear proyecto y tarea\n(nace en open)"]
+        A3 --> A4["Asignar tarea a un usuario\n(pasa a to_do)"]
+        A6["Finalizar tarea\n(desde testing o qa)"] --> A7[Consultar Dashboard]
+        A7 --> A8["Archivar y eliminar proyecto\n(comentario obligatorio)"]
+    end
+
+    subgraph USER["Usuario estándar"]
+        U1["Ve el proyecto\n(tiene tarea asignada)"] --> U2[Avanza el estado de su tarea]
+        U2 --> U3["Comenta en la tarea"]
+    end
+
+    A4 -- "la tarea ya es visible\npara el usuario" --> U1
+    U3 -- "tarea lista para revisión" --> A6
+    A6 -. "si hace falta reabrir:\ncomentario obligatorio" .-> U2
+```
 
 Ver [`DEMO.md`](./DEMO.md) para el guion paso a paso con datos concretos.
 
